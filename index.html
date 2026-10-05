@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ventas · Ropa y Helados</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5B1A33">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ventas">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F5F0; --card:#FFFFFF; --ink:#2B1622; --muted:#6E5F67; --line:#E4DDE0; --outline:#5B1A33;
+  --ropa:#7D8FB3; --ropa-knob:#9DABC8; --ropa-deep:#46577E; --ropa-soft:#E4E9F3;
+  --hel:#F3D98E; --hel-knob:#C9B06A; --hel-deep:#7A5E12; --hel-soft:#FBF2D6;
+  --cash:#2E8B57; --yape:#742284; --buy:#B8433B; --good:#2E8B57; --bad:#B8433B; --focus:#E8A33D;
+  --acc:var(--ropa); --acc-deep:var(--ropa-deep); --acc-soft:var(--ropa-soft);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#17131A; --card:#221C25; --ink:#F0E8EC; --muted:#B3A4AC; --line:#3A3039; --outline:#D7A7BD;
+    --ropa-deep:#B4C2E6; --ropa-soft:#283146; --hel-deep:#F3D98E; --hel-soft:#3A3220;
+    --cash:#45B97A; --yape:#B565C7; --buy:#E9786F; --good:#45B97A; --bad:#E9786F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#17131A; --card:#221C25; --ink:#F0E8EC; --muted:#B3A4AC; --line:#3A3039; --outline:#D7A7BD;
+  --ropa-deep:#B4C2E6; --ropa-soft:#283146; --hel-deep:#F3D98E; --hel-soft:#3A3220;
+  --cash:#45B97A; --yape:#B565C7; --buy:#E9786F; --good:#45B97A; --bad:#E9786F;
+}
+body.helados{--acc:var(--hel); --acc-deep:var(--hel-deep); --acc-soft:var(--hel-soft)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif; font-size:16px; line-height:1.4;
+  font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit; color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus); outline-offset:2px}
+[hidden]{display:none !important}
+.app{max-width:640px; margin:0 auto; padding:14px 16px 120px}
+
+/* Encabezado + botón de modo */
+.top{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px}
+.top h1{margin:0; font-size:1.35rem; font-weight:900; line-height:1.1}
+.top .sub{font-size:.85rem; color:var(--muted); font-weight:600}
+.modewrap{display:flex; flex-direction:column; align-items:center; gap:3px}
+.mode{position:relative; width:118px; height:58px; border-radius:999px; border:3px solid var(--outline);
+  background:var(--ropa); padding:0; transition:background .25s}
+body.helados .mode{background:var(--hel)}
+.mode .ico{position:absolute; top:50%; width:26px; height:26px; transform:translateY(-50%); opacity:.6; color:var(--outline)}
+.mode .ico.l{left:15px} .mode .ico.r{right:15px}
+.mode .knob{position:absolute; top:4px; left:4px; width:44px; height:44px; border-radius:50%;
+  background:var(--ropa-knob); border:3px solid var(--outline); display:grid; place-items:center; color:#fff;
+  transition:transform .25s cubic-bezier(.4,1.4,.6,1), background .25s}
+body.helados .mode .knob{transform:translateX(60px); background:var(--hel-knob)}
+.mode .knob svg{width:24px; height:24px}
+.modelbl{font-size:.78rem; font-weight:800; color:var(--acc-deep); letter-spacing:.02em; text-transform:uppercase}
+@media (prefers-reduced-motion:reduce){ .mode,.mode .knob{transition:none} }
+
+/* Tarjetas */
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px}
+.card + .card{margin-top:12px}
+h2{font-size:1.05rem; font-weight:800; margin:24px 0 10px}
+.banner{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  background:var(--acc-soft); border:2px dashed var(--outline); border-radius:14px; padding:10px 12px; margin-bottom:12px; font-weight:700; font-size:.92rem}
+.banner button{border:2px solid var(--outline); background:var(--card); border-radius:10px; padding:7px 12px; font-weight:800}
+
+/* VENTA */
+.salecard{border:3px solid var(--outline); background:var(--acc-soft); border-radius:22px; padding:18px}
+.amt{display:flex; align-items:center; background:var(--card); border:3px solid var(--outline); border-radius:16px; padding:6px 14px}
+.amt span{font-size:1.6rem; font-weight:900; color:var(--muted)}
+.amt input{flex:1; min-width:0; border:0; background:transparent; outline:none; font-size:2.6rem; font-weight:900; padding:4px 8px; text-align:right}
+.items{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; font-size:.9rem; font-weight:700; color:var(--muted); min-height:1.6em}
+.items button{border:0; background:transparent; text-decoration:underline; font-weight:700; color:var(--muted); padding:2px}
+.paybtns{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px}
+.pay{border:3px solid var(--outline); border-radius:18px; padding:18px 8px; color:#fff; font-weight:900; font-size:1.25rem; line-height:1.15}
+.pay small{display:block; font-size:.78rem; font-weight:700; opacity:.9}
+.pay.cash{background:var(--cash)} .pay.yape{background:var(--yape)}
+.pay:active{transform:translateY(2px)}
+.prods{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+.prods .lbl{width:100%; font-size:.82rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.03em}
+.pchip{border:2px solid var(--outline); background:var(--card); border-radius:999px; padding:7px 12px; font-weight:700; font-size:.9rem}
+.pchip b{font-weight:900; margin-left:4px}
+.linkbtn{border:0; background:transparent; color:var(--acc-deep); font-weight:800; text-decoration:underline; padding:4px 0}
+
+.todaybox{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px}
+.stat{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px 12px}
+.stat span{display:block; font-size:.78rem; color:var(--muted); font-weight:700}
+.stat b{display:block; font-size:clamp(.95rem,4.2vw,1.2rem); font-weight:900; white-space:nowrap}
+
+/* Listas */
+.list{background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden}
+.row{display:grid; grid-template-columns:auto 1fr auto auto; gap:10px; align-items:center; padding:10px 12px; border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.tag{font-size:.72rem; font-weight:800; padding:3px 8px; border-radius:999px; color:#fff; white-space:nowrap}
+.tag.cash{background:var(--cash)} .tag.yape{background:var(--yape)} .tag.buy{background:var(--buy)}
+.row .t{font-weight:700; font-size:.95rem}
+.row .s{font-size:.8rem; color:var(--muted); font-weight:600}
+.row .m{font-weight:900}
+.x{border:0; background:transparent; color:var(--muted); font-size:1.3rem; line-height:1; padding:6px 8px; border-radius:8px}
+.empty{padding:16px; text-align:center; color:var(--muted); font-weight:600; font-size:.92rem}
+.dotn{width:10px; height:10px; border-radius:50%; border:2px solid var(--outline)}
+.dotn.ropa{background:var(--ropa)} .dotn.helados{background:var(--hel)}
+
+/* Formularios (compras / productos) */
+.f{display:block; margin-top:10px}
+.f span{display:block; font-size:.82rem; font-weight:800; color:var(--muted); margin-bottom:4px}
+.f input,.f select{width:100%; background:var(--paper); border:2px solid var(--line); border-radius:12px; padding:11px 12px; min-height:46px}
+.f input:focus,.f select:focus{border-color:var(--outline); outline:none}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.cats{display:flex; flex-wrap:wrap; gap:6px}
+.cat{border:2px solid var(--line); background:var(--paper); border-radius:999px; padding:7px 12px; font-weight:700; font-size:.88rem}
+.cat[aria-pressed="true"]{border-color:var(--outline); background:var(--acc); color:var(--ink)}
+body.ropa .cat[aria-pressed="true"]{color:#fff}
+.btn{border:2px solid var(--outline); background:var(--card); border-radius:12px; padding:11px 14px; font-weight:800}
+.btn.main{background:var(--outline); color:var(--card); width:100%; margin-top:14px; padding:14px}
+.btn.danger{border-color:var(--bad); color:var(--bad)}
+.toast{position:fixed; left:50%; bottom:calc(84px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%);
+  background:var(--ink); color:var(--paper); border-radius:14px; padding:12px 14px; font-weight:700; display:flex; gap:14px; align-items:center;
+  box-shadow:0 6px 20px rgba(0,0,0,.25); z-index:30; max-width:calc(100% - 32px)}
+.toast button{border:0; background:transparent; color:var(--hel); font-weight:900; text-decoration:underline; padding:0}
+
+/* Historial */
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px}
+.chip{border:2px solid var(--line); background:var(--card); border-radius:999px; padding:6px 12px; font-weight:700; font-size:.86rem}
+.chip[aria-pressed="true"]{background:var(--outline); border-color:var(--outline); color:var(--card)}
+.kpis{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
+.kpi{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px}
+.kpi span{display:block; font-size:.78rem; color:var(--muted); font-weight:700}
+.kpi b{display:block; font-size:1.3rem; font-weight:900}
+.kpi small{display:block; font-size:.78rem; color:var(--muted); font-weight:600}
+.chart{display:flex; align-items:flex-end; gap:4px; height:170px; overflow-x:auto; padding-top:18px}
+.col{flex:1 0 22px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:4px; position:relative}
+.col i{display:block; width:70%; min-width:12px; border-radius:6px 6px 2px 2px; background:var(--acc); border:2px solid var(--outline); min-height:3px}
+.col small{font-size:.66rem; color:var(--muted); font-weight:700; white-space:nowrap}
+.col em{position:absolute; top:-2px; font-style:normal; font-size:.62rem; font-weight:800; color:var(--muted)}
+.col i.zero{border:0; min-height:0; background:transparent}
+.col.best i{background:var(--good)} .col.worst i{background:var(--bad)}
+.legend{font-size:.8rem; color:var(--muted); font-weight:600; margin-top:8px}
+.hbar{display:grid; grid-template-columns:92px 1fr auto; gap:8px; align-items:center; font-size:.88rem; font-weight:700; margin-top:8px}
+.track{height:14px; border-radius:8px; background:var(--line); overflow:hidden}
+.track i{display:block; height:100%}
+details.day{border-top:1px solid var(--line)}
+details.day:first-child{border-top:0}
+details.day summary{list-style:none; display:grid; grid-template-columns:1fr auto; gap:2px 10px; padding:12px; cursor:pointer}
+details.day summary::-webkit-details-marker{display:none}
+details.day summary .d{font-weight:800}
+details.day summary .v{font-weight:900; text-align:right}
+details.day summary .s{font-size:.8rem; color:var(--muted); font-weight:600; grid-column:1 / -1}
+details.day[open] summary{background:var(--acc-soft)}
+details.day .row{padding-left:20px}
+.note{font-size:.85rem; color:var(--muted); font-weight:600}
+.status{display:flex; align-items:center; gap:8px; font-weight:700; font-size:.9rem; margin:6px 0}
+.status i{flex:none; width:10px; height:10px; border-radius:50%; background:var(--good)}
+.status i.warn{background:var(--focus)}
+.actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+
+/* Productos */
+.search{width:100%; background:var(--card); border:2px solid var(--line); border-radius:12px; padding:11px 12px; margin-bottom:10px}
+.prow{display:grid; grid-template-columns:1fr auto; gap:4px 10px; padding:12px; border-top:1px solid var(--line)}
+.prow:first-child{border-top:0}
+.prow .n{font-weight:800}
+.prow .p{font-weight:900; text-align:right}
+.prow .d{font-size:.82rem; color:var(--muted); font-weight:600}
+.prow .acts{display:flex; gap:12px; justify-content:flex-end}
+.prow .acts button{border:0; background:transparent; font-weight:800; text-decoration:underline; color:var(--muted); padding:2px}
+
+/* Fotos de productos */
+.photobox{width:110px; height:110px; border:2px dashed var(--outline); border-radius:16px; background:var(--paper); padding:0; overflow:hidden;
+  display:grid; place-items:center; color:var(--muted); font-weight:700; font-size:.8rem; text-align:center}
+.photobox img{width:100%; height:100%; object-fit:cover}
+.photopick{display:flex; align-items:flex-end; gap:12px}
+.thumb{width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid var(--outline); flex:none; background:var(--acc-soft);
+  display:grid; place-items:center; color:var(--acc-deep)}
+.thumb svg{width:26px; height:26px}
+.prow.has{grid-template-columns:auto 1fr auto}
+.prow.has .thumb{grid-row:span 3}
+.pchip{display:inline-flex; align-items:center; gap:6px}
+.pchip img{width:26px; height:26px; border-radius:50%; object-fit:cover; margin-left:-6px; border:1.5px solid var(--outline)}
+.annot{border:0; background:transparent; padding:2px 0; font-weight:800; font-size:.82rem; color:var(--acc-deep); text-decoration:underline; text-align:left}
+.annot.need{color:var(--yape)}
+
+/* Hoja "¿Qué se vendió?" */
+dialog.sheet{border:0; padding:0; margin:auto auto 0; width:100%; max-width:640px; max-height:88vh; border-radius:22px 22px 0 0;
+  background:var(--card); color:var(--ink); border-top:3px solid var(--outline)}
+dialog.sheet::backdrop{background:rgba(20,10,16,.55)}
+.sh-in{padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:12px}
+.sh-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+.sh-t{font-size:1.2rem; font-weight:900}
+.sh-s{font-size:.85rem; color:var(--muted); font-weight:600}
+.sh-amt{display:flex; align-items:center; gap:10px; background:var(--paper); border-radius:14px; padding:10px 14px; border:2px solid var(--line)}
+.sh-amt b{font-size:1.5rem; font-weight:900; white-space:nowrap}
+.sh-amt small{text-align:right}
+.sh-amt small{margin-left:auto; display:flex; align-items:center; gap:5px; font-size:.78rem; font-weight:700; color:var(--muted)}
+.sh-amt small svg{width:16px; height:16px}
+.sh-sel{display:flex; flex-wrap:wrap; gap:6px; min-height:34px; align-items:center}
+.selchip{display:inline-flex; align-items:center; gap:6px; background:var(--acc); color:var(--ink); border:2px solid var(--outline); border-radius:999px; padding:5px 6px 5px 12px; font-weight:800; font-size:.88rem}
+body.ropa .selchip{color:#fff}
+.selchip button{border:0; background:rgba(0,0,0,.18); color:inherit; width:22px; height:22px; border-radius:50%; line-height:1; padding:0; font-weight:900}
+.pgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px}
+.pcard{border:2px solid var(--line); background:var(--paper); border-radius:14px; padding:6px; display:flex; flex-direction:column; gap:4px; text-align:left}
+.pcard:active{border-color:var(--outline)}
+.pcard .ph{aspect-ratio:1; border-radius:10px; overflow:hidden; background:var(--acc-soft); display:grid; place-items:center; color:var(--acc-deep)}
+.pcard .ph img{width:100%; height:100%; object-fit:cover}
+.pcard .ph svg{width:36px; height:36px}
+.pcard .nm{font-weight:800; font-size:.82rem; line-height:1.15}
+.pcard .pr{font-weight:900; font-size:.82rem; color:var(--muted)}
+.sh-other{display:flex; gap:8px}
+.sh-other input{flex:1; min-width:0; background:var(--paper); border:2px solid var(--line); border-radius:12px; padding:10px 12px}
+.sh-sum{font-size:.85rem; font-weight:700; color:var(--muted)}
+.sh-btns{display:grid; grid-template-columns:1fr 2fr; gap:8px}
+.sh-btns .btn.main{margin-top:0}
+
+/* Barra inferior */
+nav.tabs{position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--card); border-top:3px solid var(--outline);
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .in{max-width:640px; margin:0 auto; display:grid; grid-template-columns:1.3fr 1fr 1fr 1fr}
+nav.tabs button{border:0; background:transparent; padding:9px 4px 11px; font-weight:800; font-size:.8rem; color:var(--muted);
+  display:flex; flex-direction:column; align-items:center; gap:2px}
+nav.tabs button svg{width:24px; height:24px}
+nav.tabs button[aria-current="page"]{color:var(--ink)}
+nav.tabs button[aria-current="page"] svg{color:var(--acc-deep)}
+nav.tabs button.main-tab{font-size:.88rem}
+@media (max-width:380px){ .amt input{font-size:2.1rem} .todaybox{grid-template-columns:1fr 1fr} }
+</style>
+</head>
+<body class="ropa">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-shirt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M8 3 3 6l2 4 2-1v11h10V9l2 1 2-4-5-3c-.8 1.4-2.2 2.2-4 2.2S8.8 4.4 8 3z"/></symbol>
+  <symbol id="i-cone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6.5 10.5a5.5 5.5 0 0 1 11 0z"/><path d="M7 10.5h10L12 22z"/><path d="M9.5 14l4 3M14.5 14l-4 3" stroke-width="1.5"/></symbol>
+  <symbol id="i-sale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 9.5h.01M18 15.5h.01"/></symbol>
+  <symbol id="i-buy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-6"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <h1 id="title">Venta</h1>
+      <div class="sub" id="dateLbl"></div>
+    </div>
+    <div class="modewrap" id="modeWrap">
+      <button class="mode" id="modeBtn" role="switch" aria-checked="false" aria-label="Cambiar entre tienda de ropa y helados">
+        <svg class="ico l"><use href="#i-shirt"/></svg>
+        <svg class="ico r"><use href="#i-cone"/></svg>
+        <span class="knob"><svg id="knobIco"><use href="#i-shirt"/></svg></span>
+      </button>
+      <span class="modelbl" id="modeLbl">Ropa</span>
+    </div>
+  </header>
+
+  <div class="banner" id="backupBanner" hidden>
+    <span id="backupTxt">Guarda un respaldo de tus ventas.</span>
+    <button id="bannerBackup">Guardar respaldo</button>
+  </div>
+
+  <!-- ============ VENTA ============ -->
+  <section id="v-venta">
+    <div class="salecard">
+      <label class="amt" for="amount"><span>S/</span>
+        <input id="amount" type="number" inputmode="decimal" min="0" step="0.10" placeholder="0.00" aria-label="Monto de la venta">
+      </label>
+      <div class="items"><span id="itemsTxt"></span><button id="clearItems" hidden>Limpiar</button></div>
+      <div class="paybtns">
+        <button class="pay cash" data-pay="Efectivo">Efectivo<small>guardar venta</small></button>
+        <button class="pay yape" data-pay="Yape">Yape / Plin<small>guardar venta</small></button>
+      </div>
+      <div class="prods" id="quickProds"></div>
+    </div>
+
+    <div class="todaybox">
+      <div class="stat"><span>Hoy</span><b id="tTotal">S/ 0.00</b></div>
+      <div class="stat"><span>Efectivo</span><b id="tCash">S/ 0.00</b></div>
+      <div class="stat"><span>Yape / Plin</span><b id="tYape">S/ 0.00</b></div>
+    </div>
+
+    <h2 id="todayTitle">Ventas de hoy</h2>
+    <div class="list" id="todaySales"></div>
+  </section>
+
+  <!-- ============ COMPRAS ============ -->
+  <section id="v-compras" hidden>
+    <div class="card">
+      <label class="f"><span>Monto de la compra (S/)</span>
+        <input id="bAmount" type="number" inputmode="decimal" min="0" step="0.10" placeholder="0.00"></label>
+      <div class="f"><span>¿En qué fue?</span><div class="cats" id="bCats"></div></div>
+      <label class="f"><span>Detalle (opcional)</span>
+        <input id="bDesc" type="text" placeholder="Ej. 20 polos para campaña, 2 bolsas de base"></label>
+      <div class="two">
+        <label class="f"><span>Fecha</span><input id="bDate" type="date"></label>
+        <label class="f"><span>Pagado con</span><select id="bPay"><option>Efectivo</option><option>Yape</option><option>Transferencia</option><option>Tarjeta</option></select></label>
+      </div>
+      <button class="btn main" id="bSave">Guardar compra</button>
+    </div>
+    <h2 id="buyTitle">Compras recientes</h2>
+    <div class="list" id="buyList"></div>
+  </section>
+
+  <!-- ============ HISTORIAL ============ -->
+  <section id="v-historial" hidden>
+    <div class="chips" id="hPer"></div>
+    <div class="chips" id="hNeg"></div>
+    <div class="kpis" id="hKpis"></div>
+
+    <h2 id="chartTitle">Ventas por día</h2>
+    <div class="card"><div class="chart" id="chartMain"></div><div class="legend" id="chartLegend"></div></div>
+
+    <h2>¿Qué día de la semana se vende mejor?</h2>
+    <div class="card"><div class="chart" id="chartWeek"></div>
+      <div class="legend">Promedio de venta en los días que hubo ventas. Verde: el mejor día. Rojo: el más bajo.</div></div>
+
+    <h2>Efectivo o Yape</h2>
+    <div class="card" id="payMix"></div>
+
+    <div id="topWrap">
+      <h2>Productos más vendidos</h2>
+      <div class="card" id="topProds"></div>
+    </div>
+
+    <h2>Días de venta</h2>
+    <div class="list" id="dayList"></div>
+
+    <h2>Tus datos</h2>
+    <div class="card">
+      <div class="status"><i id="stDot"></i><span id="stTxt">Revisando almacenamiento…</span></div>
+      <div class="status"><i id="bkDot"></i><span id="bkTxt"></span></div>
+      <p class="note">Las ventas se guardan en dos lugares dentro de este celular. Para análisis serios a largo plazo, guarda un respaldo cada semana y mándalo a tu WhatsApp o Google Drive: así no pierdes nada aunque cambies o pierdas el celular.</p>
+      <div class="actions">
+        <button class="btn" id="dBackup">Guardar respaldo</button>
+        <button class="btn" id="dCsv">Exportar para Excel / Power BI</button>
+        <button class="btn" id="dImport">Restaurar respaldo</button>
+        <input type="file" id="dFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="actions"><button class="btn danger" id="dWipe">Borrar todos los datos</button></div>
+    </div>
+  </section>
+
+  <!-- ============ PRODUCTOS ============ -->
+  <section id="v-productos" hidden>
+    <div class="card">
+      <div class="note" id="pFormTitle" style="font-weight:800;color:var(--ink)">Nuevo producto</div>
+      <div class="f"><span>Foto (opcional)</span>
+        <div class="photopick">
+          <button class="photobox" id="pPhotoBtn" type="button" aria-label="Tomar o subir foto del producto"><img id="pPhotoImg" alt="" hidden><span id="pPhotoPh">Tomar o subir foto</span></button>
+          <button class="linkbtn" id="pPhotoDel" type="button" hidden>Quitar foto</button>
+          <input type="file" id="pPhotoFile" accept="image/*" hidden>
+        </div>
+      </div>
+      <label class="f"><span>Nombre</span><input id="pName" type="text" placeholder="Ej. Polo básico, Cono doble"></label>
+      <label class="f"><span>Precio (S/)</span><input id="pPrice" type="number" inputmode="decimal" min="0" step="0.10" placeholder="0.00"></label>
+      <label class="f"><span>Descripción corta (opcional)</span><input id="pDesc" type="text" placeholder="Ej. algodón, tallas S a XL"></label>
+      <button class="btn main" id="pSave">Guardar producto</button>
+      <button class="btn" id="pCancel" style="width:100%;margin-top:8px" hidden>Cancelar edición</button>
+    </div>
+    <h2 id="pListTitle">Productos</h2>
+    <input class="search" id="pSearch" type="search" placeholder="Buscar producto…" aria-label="Buscar producto">
+    <div class="list" id="pList"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast" hidden><span id="toastTxt"></span><button id="toastUndo">Deshacer</button></div>
+
+<dialog class="sheet" id="sheet" aria-labelledby="shTitle">
+  <div class="sh-in">
+    <div class="sh-head">
+      <div><div class="sh-t" id="shTitle">¿Qué se vendió?</div><div class="sh-s" id="shInfo"></div></div>
+      <button class="x" id="shClose" aria-label="Cerrar">×</button>
+    </div>
+    <div class="sh-amt"><span>Monto</span><b id="shAmt"></b><small><svg><use href="#i-lock"/></svg>no se puede cambiar</small></div>
+    <div class="sh-sel" id="shSel"></div>
+    <div class="pgrid" id="shGrid"></div>
+    <div class="sh-other"><input id="shOther" type="text" placeholder="Otro producto (escribir)" aria-label="Otro producto"><button class="btn" id="shAdd">Agregar</button></div>
+    <div class="sh-sum" id="shSum"></div>
+    <div class="sh-btns"><button class="btn" id="shCancel">Cancelar</button><button class="btn main" id="shSave">Guardar productos</button></div>
+  </div>
+</dialog>
+
+<nav class="tabs" aria-label="Apartados">
+  <div class="in">
+    <button class="main-tab" data-view="venta" aria-current="page"><svg><use href="#i-sale"/></svg>Venta</button>
+    <button data-view="compras"><svg><use href="#i-buy"/></svg>Compras</button>
+    <button data-view="historial"><svg><use href="#i-chart"/></svg>Historial</button>
+    <button data-view="productos"><svg><use href="#i-tag"/></svg>Productos</button>
+  </div>
+</nav>
+
+<script>
+/* ================= Utilidades ================= */
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,'0');
+const isoDay = (d=new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseDay = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const money = n => 'S/ ' + (n||0).toLocaleString('es-PE',{minimumFractionDigits:2, maximumFractionDigits:2});
+const moneyShort = n => n >= 1000 ? (n/1000).toFixed(1).replace('.0','') + 'k' : Math.round(n);
+const longDay = s => { const t = parseDay(s).toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long', year:'numeric'}); return t.charAt(0).toUpperCase() + t.slice(1); };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const NEG = {ropa:'Tienda de ropa', helados:'Helados'};
+const CATS = {
+  ropa:['Compra de prendas','Alquiler','Luz / agua / internet','Bolsas y empaques','Transporte','Otros'],
+  helados:['Base de helado','Conos y vasos','Toppings','Gas / luz','Transporte','Otros']
+};
+const negIcon = n => `<svg><use href="#${n === 'helados' ? 'i-cone' : 'i-shirt'}"/></svg>`;
+const photoOf = p => p && p.foto && PH[p.foto] ? PH[p.foto] : null;
+const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+/* ================= Guardado robusto =================
+   1) IndexedDB (principal)  2) copia en localStorage
+   3) se pide almacenamiento persistente al navegador
+   4) respaldos en archivo (WhatsApp / Drive) */
+const LS_KEY = 'ventas-tienda-v2';
+const DB_NAME = 'ventas-tienda', STORE = 'kv';
+let dbConn = null;
+function idb(){
+  if(dbConn) return Promise.resolve(dbConn);
+  return new Promise((res, rej) => {
+    if(!('indexedDB' in window)) return rej(new Error('sin indexedDB'));
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore(STORE);
+    r.onsuccess = () => { dbConn = r.result; res(dbConn); };
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbGet(k){ const db = await idb(); return new Promise((res,rej) => { const q = db.transaction(STORE).objectStore(STORE).get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+async function idbSet(k,v){ const db = await idb(); return new Promise((res,rej) => { const tx = db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(v,k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); }
+
+const emptyState = () => ({version:2, updatedAt:0, ventas:[], compras:[], productos:[], lastBackup:0, mode:'ropa'});
+let S = emptyState();
+let PH = {};   // fotos: id -> imagen (se guardan aparte para no llenar la copia rápida)
+
+function valid(x){ return x && Array.isArray(x.ventas) && Array.isArray(x.compras) && Array.isArray(x.productos); }
+async function load(){
+  let fromIdb = null, fromLs = null;
+  try{ fromIdb = await idbGet('state'); }catch(e){}
+  try{ fromLs = JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){}
+  const cands = [fromIdb, fromLs].filter(valid).sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+  if(cands.length) S = Object.assign(emptyState(), cands[0]);
+  else migrateV1();
+  try{ PH = (await idbGet('photos')) || {}; }catch(e){ PH = {}; }
+}
+function migrateV1(){
+  try{
+    const old = JSON.parse(localStorage.getItem('libro-cuentas-v1'));
+    if(!old || !Array.isArray(old.movs) || !old.movs.length) return;
+    old.movs.forEach(m => {
+      const ts = parseDay(m.fecha).getTime() + 12*3600e3;
+      const pago = /yape|plin/i.test(m.pago||'') ? 'Yape' : (m.pago || 'Efectivo');
+      if(m.tipo === 'venta') S.ventas.push({id:m.id||uid(), ts, fecha:m.fecha, hora:'', neg:m.neg, monto:m.monto, pago: pago==='Yape'?'Yape':'Efectivo', items: m.desc ? [m.desc] : []});
+      else S.compras.push({id:m.id||uid(), ts, fecha:m.fecha, neg:m.neg, monto:m.monto, cat:m.cat, desc:m.desc||'', pago});
+    });
+    save();
+  }catch(e){}
+}
+let saveTimer = null;
+function save(){
+  S.updatedAt = Date.now();
+  const json = JSON.stringify(S);
+  try{ localStorage.setItem(LS_KEY, json); }catch(e){}
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { idbSet('state', JSON.parse(json)).catch(()=>{}); }, 50);
+}
+function savePhotos(){ idbSet('photos', PH).catch(() => showToast('No se pudo guardar la foto en este dispositivo.')); }
+async function askPersist(){
+  try{
+    if(navigator.storage && navigator.storage.persisted){
+      let p = await navigator.storage.persisted();
+      if(!p && navigator.storage.persist) p = await navigator.storage.persist();
+      return p;
+    }
+  }catch(e){}
+  return null;
+}
+
+/* ================= Archivos (respaldo / CSV) ================= */
+async function exportFile(name, text, mime){
+  try{
+    if(window.claude && typeof window.claude.use === 'function'){
+      const dl = await window.claude.use('downloads');
+      if(dl){ try{ await dl.save({filename:name, data:text}); return true; }catch(e){ return false; } }
+    }
+  }catch(e){}
+  try{
+    const file = new File([text], name, {type:mime});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:name});
+      return true;
+    }
+  }catch(e){ if(e && e.name === 'AbortError') return false; }
+  const url = URL.createObjectURL(new Blob([text], {type:mime}));
+  const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  return true;
+}
+async function doBackup(){
+  const ok = await exportFile(`respaldo_ventas_${isoDay()}.json`, JSON.stringify(Object.assign({app:'ventas-tienda'}, S, {photos:PH})), 'application/json');
+  if(ok){ S.lastBackup = Date.now(); save(); showToast('Respaldo guardado.'); renderBanner(); if(view==='historial') renderDataStatus(); }
+}
+
+/* ================= Modo ropa / helados ================= */
+function applyMode(){
+  document.body.classList.toggle('helados', S.mode === 'helados');
+  document.body.classList.toggle('ropa', S.mode !== 'helados');
+  $('modeBtn').setAttribute('aria-checked', S.mode === 'helados');
+  $('modeLbl').textContent = S.mode === 'helados' ? 'Helados' : 'Ropa';
+  $('knobIco').innerHTML = `<use href="#${S.mode === 'helados' ? 'i-cone' : 'i-shirt'}"/>`;
+}
+$('modeBtn').addEventListener('click', () => {
+  S.mode = S.mode === 'helados' ? 'ropa' : 'helados';
+  cart = []; manualAmount = false; $('amount').value = ''; bCat = null;
+  save(); applyMode(); render();
+});
+
+/* ================= Toast con deshacer ================= */
+let toastTimer = null, undoFn = null;
+function showToast(txt, undo){
+  $('toastTxt').textContent = txt; undoFn = undo || null;
+  $('toastUndo').hidden = !undo; $('toast').hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').hidden = true; undoFn = null; }, undo ? 6000 : 2500);
+}
+$('toastUndo').addEventListener('click', () => { if(undoFn) undoFn(); $('toast').hidden = true; undoFn = null; });
+
+/* ================= VENTA ================= */
+let cart = [], manualAmount = false;
+$('amount').addEventListener('input', () => { manualAmount = true; });
+function renderCart(){
+  $('itemsTxt').textContent = cart.length ? cart.map(c => c.nombre).join(' + ') : '';
+  $('clearItems').hidden = !cart.length && !$('amount').value;
+}
+$('clearItems').addEventListener('click', () => { cart = []; manualAmount = false; $('amount').value = ''; renderCart(); });
+document.querySelectorAll('[data-pay]').forEach(b => b.addEventListener('click', () => {
+  const monto = Math.round((parseFloat($('amount').value) || 0) * 100) / 100;
+  if(!(monto > 0)){ $('amount').focus(); showToast('Escribe el monto de la venta.'); return; }
+  const now = new Date();
+  const v = {id:uid(), ts:now.getTime(), fecha:isoDay(now), hora:`${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    neg:S.mode, monto, pago:b.dataset.pay, items:cart.map(c => c.nombre)};
+  cart.forEach(c => { const p = S.productos.find(x => x.id === c.id); if(p) p.usos = (p.usos||0) + 1; });
+  S.ventas.push(v); save();
+  cart = []; manualAmount = false; $('amount').value = '';
+  showToast(`Venta de ${money(monto)} en ${b.dataset.pay === 'Yape' ? 'Yape' : 'efectivo'} guardada.`, () => {
+    S.ventas = S.ventas.filter(x => x.id !== v.id); save(); render();
+  });
+  askPersist();
+  render();
+}));
+function renderVenta(){
+  const today = isoDay();
+  const prods = S.productos.filter(p => p.neg === S.mode).sort((a,b) => (b.usos||0) - (a.usos||0) || a.nombre.localeCompare(b.nombre));
+  const qp = $('quickProds');
+  qp.innerHTML = prods.length
+    ? `<span class="lbl">Toca para sumar productos</span>` + prods.slice(0,12).map(p => `<button class="pchip" data-pid="${p.id}">${photoOf(p) ? `<img src="${photoOf(p)}" alt="">` : ''}${esc(p.nombre)}<b>${moneyShort(p.precio)}</b></button>`).join('')
+    : `<button class="linkbtn" id="goProds">Agregar productos con su precio (opcional)</button>`;
+  qp.querySelectorAll('[data-pid]').forEach(b => b.addEventListener('click', () => {
+    const p = S.productos.find(x => x.id === b.dataset.pid); if(!p) return;
+    cart.push({id:p.id, nombre:p.nombre, precio:p.precio});
+    const cur = manualAmount ? (parseFloat($('amount').value) || 0) : cart.slice(0,-1).reduce((s,c) => s + c.precio, 0);
+    $('amount').value = (Math.round((cur + p.precio)*100)/100).toFixed(2);
+    manualAmount = false; renderCart();
+  }));
+  const gp = $('goProds'); if(gp) gp.addEventListener('click', () => go('productos'));
+  renderCart();
+
+  const ts = S.ventas.filter(v => v.fecha === today && v.neg === S.mode);
+  const sum = (arr, f) => arr.filter(f).reduce((s,v) => s + v.monto, 0);
+  $('tTotal').textContent = money(sum(ts, () => true));
+  $('tCash').textContent = money(sum(ts, v => v.pago === 'Efectivo'));
+  $('tYape').textContent = money(sum(ts, v => v.pago === 'Yape'));
+  $('todayTitle').textContent = `Ventas de hoy · ${S.mode === 'helados' ? 'Helados' : 'Ropa'} (${ts.length})`;
+  const list = $('todaySales');
+  list.innerHTML = ts.length ? ts.slice().sort((a,b) => b.ts - a.ts).map(saleRow).join('') : '<div class="empty">Aún no hay ventas hoy en este modo.</div>';
+  bindDel(list);
+}
+function saleRow(v){
+  const has = v.items && v.items.length;
+  const sub = [v.hora, has ? groupNames(v.items).join(', ') : ''].filter(Boolean).map(esc).join(' · ');
+  return `<div class="row"><span class="tag ${v.pago==='Yape'?'yape':'cash'}">${v.pago==='Yape'?'Yape':'Efectivo'}</span>
+    <div><div class="t">${money(v.monto)}</div><div class="s">${sub || '&nbsp;'}</div>
+      <button class="annot ${has ? '' : 'need'}" data-annot="${v.id}">${has ? 'Cambiar productos' : '+ ¿Qué se vendió?'}</button></div><span></span>
+    <button class="x" data-del="v:${v.id}" aria-label="Eliminar venta de ${money(v.monto)}">×</button></div>`;
+}
+function buyRow(c, showNeg){
+  const sub = [showNeg ? NEG[c.neg] : '', c.desc, parseDay(c.fecha).toLocaleDateString('es-PE',{day:'numeric', month:'short'}), c.pago].filter(Boolean).map(esc).join(' · ');
+  return `<div class="row"><span class="tag buy">Compra</span>
+    <div><div class="t">${esc(c.cat)}</div><div class="s">${sub}</div></div>
+    <div class="m">${money(c.monto)}</div>
+    <button class="x" data-del="c:${c.id}" aria-label="Eliminar compra de ${money(c.monto)}">×</button></div>`;
+}
+function groupNames(list){
+  const c = {}; list.forEach(n => c[n] = (c[n]||0) + 1);
+  return Object.entries(c).map(([n,k]) => k > 1 ? `${n} ×${k}` : n);
+}
+function bindDel(root){
+  root.querySelectorAll('[data-annot]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openSheet(b.dataset.annot); }));
+  root.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    const [k, id] = b.dataset.del.split(':');
+    const arr = k === 'v' ? 'ventas' : 'compras';
+    const item = S[arr].find(x => x.id === id); if(!item) return;
+    if(!confirm(`¿Eliminar esta ${k === 'v' ? 'venta' : 'compra'} de ${money(item.monto)}?`)) return;
+    S[arr] = S[arr].filter(x => x.id !== id); save(); render();
+    showToast('Eliminado.', () => { S[arr].push(item); save(); render(); });
+  }));
+}
+
+/* ================= ¿Qué se vendió? (después de la venta) ================= */
+let shSale = null, shSel = [];
+function openSheet(id){
+  const v = S.ventas.find(x => x.id === id); if(!v) return;
+  shSale = v; shSel = (v.items || []).slice();
+  $('shAmt').textContent = money(v.monto);
+  $('shInfo').textContent = `${NEG[v.neg]} · ${v.pago === 'Yape' ? 'Yape / Plin' : 'Efectivo'}${v.hora ? ' · ' + v.hora : ''}`;
+  $('shOther').value = '';
+  const prods = S.productos.filter(p => p.neg === v.neg).sort((a,b) => (b.usos||0) - (a.usos||0) || a.nombre.localeCompare(b.nombre));
+  $('shGrid').innerHTML = prods.length ? prods.map(p => `<button class="pcard" data-sp="${p.id}">
+      <span class="ph">${photoOf(p) ? `<img src="${photoOf(p)}" alt="">` : negIcon(p.neg)}</span>
+      <span class="nm">${esc(p.nombre)}</span><span class="pr">${money(p.precio)}</span></button>`).join('')
+    : '<div class="note">No tienes productos guardados de este negocio. Puedes escribir el nombre abajo o agregarlos en Productos.</div>';
+  $('shGrid').querySelectorAll('[data-sp]').forEach(b => b.addEventListener('click', () => {
+    const p = S.productos.find(x => x.id === b.dataset.sp); if(p){ shSel.push(p.nombre); renderSheetSel(); }
+  }));
+  renderSheetSel();
+  $('sheet').showModal();
+}
+function renderSheetSel(){
+  const c = {}; shSel.forEach(n => c[n] = (c[n]||0) + 1);
+  $('shSel').innerHTML = shSel.length ? Object.entries(c).map(([n,k]) =>
+    `<span class="selchip">${esc(n)}${k > 1 ? ' ×' + k : ''}<button data-rm="${esc(n)}" aria-label="Quitar uno de ${esc(n)}">−</button></span>`).join('')
+    : '<span class="note">Toca los productos que se vendieron.</span>';
+  $('shSel').querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => {
+    const i = shSel.lastIndexOf(b.dataset.rm); if(i >= 0) shSel.splice(i, 1); renderSheetSel();
+  }));
+  let sum = 0, known = true;
+  shSel.forEach(n => { const p = S.productos.find(x => x.neg === shSale.neg && x.nombre === n); if(p) sum += p.precio; else known = false; });
+  const el = $('shSum');
+  if(!shSel.length || !known){ el.textContent = ''; return; }
+  const diff = Math.round((shSale.monto - sum)*100)/100;
+  el.textContent = `Precio de lista: ${money(sum)}` + (diff === 0 ? ' · coincide con la venta.' : diff > 0 ? ` · la venta fue ${money(diff)} más.` : ` · la venta fue ${money(-diff)} menos (¿descuento?).`);
+}
+$('shAdd').addEventListener('click', () => {
+  const n = $('shOther').value.trim(); if(!n) return;
+  shSel.push(n); $('shOther').value = ''; renderSheetSel();
+});
+$('shOther').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('shAdd').click(); } });
+$('shSave').addEventListener('click', () => {
+  if(!shSale) return;
+  const count = arr => arr.reduce((m,n) => (m[n] = (m[n]||0) + 1, m), {});
+  const before = count(shSale.items || []), after = count(shSel);
+  S.productos.filter(p => p.neg === shSale.neg).forEach(p => {
+    const d = (after[p.nombre]||0) - (before[p.nombre]||0);
+    if(d) p.usos = Math.max(0, (p.usos||0) + d);
+  });
+  shSale.items = shSel.slice();   // solo cambian los productos; el monto queda igual
+  save(); $('sheet').close(); render(); showToast('Productos anotados.');
+});
+$('shCancel').addEventListener('click', () => $('sheet').close());
+$('shClose').addEventListener('click', () => $('sheet').close());
+$('sheet').addEventListener('click', e => { if(e.target === $('sheet')) $('sheet').close(); });
+
+/* ================= COMPRAS ================= */
+let bCat = null;
+function renderCompras(){
+  const cats = CATS[S.mode];
+  if(!cats.includes(bCat)) bCat = cats[0];
+  $('bCats').innerHTML = cats.map(c => `<button class="cat" aria-pressed="${c===bCat}" data-cat="${esc(c)}">${esc(c)}</button>`).join('');
+  $('bCats').querySelectorAll('.cat').forEach(b => b.addEventListener('click', () => { bCat = b.dataset.cat; renderCompras(); }));
+  if(!$('bDate').value) $('bDate').value = isoDay();
+  const list = S.compras.filter(c => c.neg === S.mode).sort((a,b) => b.fecha.localeCompare(a.fecha) || b.ts - a.ts).slice(0,30);
+  $('buyTitle').textContent = `Compras recientes · ${S.mode === 'helados' ? 'Helados' : 'Ropa'}`;
+  $('buyList').innerHTML = list.length ? list.map(c => buyRow(c,false)).join('') : '<div class="empty">Sin compras registradas en este modo.</div>';
+  bindDel($('buyList'));
+}
+$('bSave').addEventListener('click', () => {
+  const monto = Math.round((parseFloat($('bAmount').value) || 0) * 100) / 100;
+  if(!(monto > 0)){ $('bAmount').focus(); showToast('Escribe el monto de la compra.'); return; }
+  const c = {id:uid(), ts:Date.now(), fecha:$('bDate').value || isoDay(), neg:S.mode, monto, cat:bCat, desc:$('bDesc').value.trim(), pago:$('bPay').value};
+  S.compras.push(c); save();
+  $('bAmount').value = ''; $('bDesc').value = '';
+  showToast(`Compra de ${money(monto)} guardada.`, () => { S.compras = S.compras.filter(x => x.id !== c.id); save(); render(); });
+  askPersist(); render();
+});
+
+/* ================= PRODUCTOS ================= */
+let editId = null;
+function renderProductos(){
+  $('pListTitle').textContent = `Productos · ${S.mode === 'helados' ? 'Helados' : 'Ropa'}`;
+  const q = $('pSearch').value.trim().toLowerCase();
+  const list = S.productos.filter(p => p.neg === S.mode && (!q || (p.nombre + ' ' + (p.desc||'')).toLowerCase().includes(q)))
+    .sort((a,b) => a.nombre.localeCompare(b.nombre));
+  $('pList').innerHTML = list.length ? list.map(p => `<div class="prow has">
+      ${photoOf(p) ? `<img class="thumb" src="${photoOf(p)}" alt="">` : `<span class="thumb">${negIcon(p.neg)}</span>`}
+      <div class="n">${esc(p.nombre)}</div><div class="p">${money(p.precio)}</div>
+      <div class="d">${esc(p.desc || '')}${p.usos ? `${p.desc ? ' · ' : ''}vendido ${p.usos} ${p.usos===1?'vez':'veces'}` : ''}</div>
+      <div class="acts" style="grid-column:2 / -1"><button data-edit="${p.id}">Editar</button><button data-pdel="${p.id}">Eliminar</button></div>
+    </div>`).join('') : `<div class="empty">${q ? 'No hay productos con ese nombre.' : 'Todavía no hay productos. Agrega el primero arriba.'}</div>`;
+  $('pList').querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+    const p = S.productos.find(x => x.id === b.dataset.edit); if(!p) return;
+    editId = p.id; $('pName').value = p.nombre; $('pPrice').value = p.precio; $('pDesc').value = p.desc || '';
+    pendingPhoto = undefined; showPhoto(photoOf(p));
+    $('pFormTitle').textContent = 'Editando producto'; $('pSave').textContent = 'Guardar cambios'; $('pCancel').hidden = false;
+    window.scrollTo({top:0, behavior:'smooth'}); $('pName').focus();
+  }));
+  $('pList').querySelectorAll('[data-pdel]').forEach(b => b.addEventListener('click', () => {
+    const p = S.productos.find(x => x.id === b.dataset.pdel); if(!p) return;
+    if(!confirm(`¿Eliminar "${p.nombre}"? Las ventas pasadas no se borran.`)) return;
+    if(p.foto){ delete PH[p.foto]; savePhotos(); }
+    S.productos = S.productos.filter(x => x.id !== p.id); save(); render();
+  }));
+}
+/* Foto: se reduce a 360 px para que ocupe poco */
+let pendingPhoto = undefined;   // undefined = sin cambios, null = quitar, string = nueva foto
+function showPhoto(src){
+  $('pPhotoImg').hidden = !src; if(src) $('pPhotoImg').src = src;
+  $('pPhotoPh').hidden = !!src; $('pPhotoDel').hidden = !src;
+}
+function shrink(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const max = 360, k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.78));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(); };
+    img.src = url;
+  });
+}
+$('pPhotoBtn').addEventListener('click', () => $('pPhotoFile').click());
+$('pPhotoFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+  try{ pendingPhoto = await shrink(f); showPhoto(pendingPhoto); }catch(err){ showToast('No se pudo leer esa imagen.'); }
+});
+$('pPhotoDel').addEventListener('click', () => { pendingPhoto = null; showPhoto(null); });
+function applyPhoto(p){
+  if(pendingPhoto === undefined) return;
+  if(pendingPhoto === null){ if(p.foto){ delete PH[p.foto]; p.foto = null; } }
+  else { if(!p.foto) p.foto = uid(); PH[p.foto] = pendingPhoto; }
+  savePhotos();
+}
+function resetProdForm(){
+  editId = null; $('pName').value = ''; $('pPrice').value = ''; $('pDesc').value = '';
+  pendingPhoto = undefined; showPhoto(null);
+  $('pFormTitle').textContent = 'Nuevo producto'; $('pSave').textContent = 'Guardar producto'; $('pCancel').hidden = true;
+}
+$('pSave').addEventListener('click', () => {
+  const nombre = $('pName').value.trim(), precio = Math.round((parseFloat($('pPrice').value) || 0)*100)/100;
+  if(!nombre){ $('pName').focus(); showToast('Escribe el nombre del producto.'); return; }
+  if(!(precio > 0)){ $('pPrice').focus(); showToast('Escribe el precio.'); return; }
+  if(editId){
+    const p = S.productos.find(x => x.id === editId);
+    if(p){ p.nombre = nombre; p.precio = precio; p.desc = $('pDesc').value.trim(); applyPhoto(p); }
+    showToast('Producto actualizado.');
+  } else {
+    const np = {id:uid(), neg:S.mode, nombre, precio, desc:$('pDesc').value.trim(), usos:0, foto:null};
+    applyPhoto(np); S.productos.push(np);
+    showToast(`"${nombre}" agregado.`);
+  }
+  save(); resetProdForm(); render();
+});
+$('pCancel').addEventListener('click', () => { resetProdForm(); });
+$('pSearch').addEventListener('input', renderProductos);
+
+/* ================= HISTORIAL ================= */
+let H = {per:'30', neg:'todos'};
+function hRange(){
+  const now = new Date(), end = isoDay(now);
+  const back = n => { const d = new Date(now); d.setDate(d.getDate() - n + 1); return isoDay(d); };
+  switch(H.per){
+    case '7': return [back(7), end];
+    case '30': return [back(30), end];
+    case 'mes': return [isoDay(new Date(now.getFullYear(), now.getMonth(), 1)), end];
+    case '90': return [back(90), end];
+    case '365': return [back(365), end];
+    default: {
+      const all = S.ventas.concat(S.compras).map(x => x.fecha).sort();
+      return [all[0] || end, end];
+    }
+  }
+}
+function chips(el, opts, cur, pick){
+  el.innerHTML = opts.map(([k,l]) => `<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${l}</button>`).join('');
+  el.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => pick(b.dataset.k)));
+}
+function barChart(el, data, opts={}){
+  if(!data.length || data.every(d => !d.v)){ el.innerHTML = '<div class="empty" style="width:100%">Sin ventas en este periodo.</div>'; return; }
+  const max = Math.max(...data.map(d => d.v)) || 1;
+  el.innerHTML = data.map(d => `<div class="col ${d.cls||''}" title="${esc(d.title||'')}">
+    ${opts.values ? `<em>${d.v ? moneyShort(d.v) : ''}</em>` : ''}
+    <i class="${d.v ? '' : 'zero'}" style="height:${Math.max(d.v/max*100, d.v ? 3 : 0)}%"></i><small>${esc(d.l)}</small></div>`).join('');
+  if(opts.scrollEnd) el.scrollLeft = el.scrollWidth;
+}
+function renderHistorial(){
+  chips($('hPer'), [['7','7 días'],['30','30 días'],['mes','Este mes'],['90','3 meses'],['365','12 meses'],['todo','Todo']], H.per, k => { H.per = k; renderHistorial(); });
+  chips($('hNeg'), [['todos','Ambos'],['ropa','Ropa'],['helados','Helados']], H.neg, k => { H.neg = k; renderHistorial(); });
+  const [a,b] = hRange();
+  const fNeg = x => H.neg === 'todos' || x.neg === H.neg;
+  const V = S.ventas.filter(v => v.fecha >= a && v.fecha <= b && fNeg(v));
+  const C = S.compras.filter(c => c.fecha >= a && c.fecha <= b && fNeg(c));
+  const tv = V.reduce((s,v) => s + v.monto, 0), tc = C.reduce((s,c) => s + c.monto, 0);
+
+  // ventas por día
+  const byDay = {};
+  V.forEach(v => { const d = byDay[v.fecha] ||= {v:0, n:0, cash:0, yape:0}; d.v += v.monto; d.n++; d[v.pago==='Yape'?'yape':'cash'] += v.monto; });
+  const saleDays = Object.keys(byDay);
+  let best = null, worst = null;
+  saleDays.forEach(k => { if(!best || byDay[k].v > byDay[best].v) best = k; if(!worst || byDay[k].v < byDay[worst].v) worst = k; });
+  const fmtShort = k => { const d = parseDay(k); return `${DOW[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+
+  $('hKpis').innerHTML = `
+    <div class="kpi"><span>Ventas</span><b style="color:var(--good)">${money(tv)}</b><small>${V.length} ${V.length===1?'venta':'ventas'}</small></div>
+    <div class="kpi"><span>Compras / gastos</span><b style="color:var(--bad)">${money(tc)}</b><small>${C.length} ${C.length===1?'registro':'registros'}</small></div>
+    <div class="kpi"><span>Queda (ventas − compras)</span><b>${money(tv - tc)}</b><small>${saleDays.length} ${saleDays.length===1?'día':'días'} con venta</small></div>
+    <div class="kpi"><span>Promedio por día de venta</span><b>${saleDays.length ? money(tv/saleDays.length) : '—'}</b><small>&nbsp;</small></div>
+    <div class="kpi"><span>Mejor día</span><b>${best ? money(byDay[best].v) : '—'}</b><small>${best ? fmtShort(best) : '&nbsp;'}</small></div>
+    <div class="kpi"><span>Día más bajo</span><b>${worst ? money(byDay[worst].v) : '—'}</b><small>${worst ? fmtShort(worst) : '&nbsp;'}</small></div>`;
+
+  // gráfico principal: por día (≤ 62 días) o por mes
+  const days = Math.round((parseDay(b) - parseDay(a)) / 864e5) + 1;
+  if(days <= 62){
+    $('chartTitle').textContent = 'Ventas por día';
+    const data = [];
+    for(let i = 0; i < days; i++){
+      const d = parseDay(a); d.setDate(d.getDate() + i); const k = isoDay(d);
+      const v = byDay[k] ? byDay[k].v : 0;
+      data.push({l: days <= 14 ? `${DOW[d.getDay()]} ${d.getDate()}` : `${d.getDate()}/${d.getMonth()+1}`, v,
+        cls: k === best ? 'best' : (k === worst && saleDays.length > 1 ? 'worst' : ''), title:`${longDay(k)}: ${money(v)}`});
+    }
+    barChart($('chartMain'), data, {values: days <= 14, scrollEnd:true});
+    $('chartLegend').textContent = 'Verde: el mejor día del periodo. Rojo: el día con venta más baja.';
+  } else {
+    $('chartTitle').textContent = 'Ventas por mes';
+    const byM = {};
+    V.forEach(v => { const k = v.fecha.slice(0,7); byM[k] = (byM[k]||0) + v.monto; });
+    const data = []; const s = parseDay(a); const cur = new Date(s.getFullYear(), s.getMonth(), 1); const e = parseDay(b);
+    while(cur <= e){ const k = `${cur.getFullYear()}-${pad(cur.getMonth()+1)}`; data.push({l:`${MONTHS[cur.getMonth()]} ${String(cur.getFullYear()).slice(2)}`, v:byM[k]||0, title:`${MONTHS[cur.getMonth()]} ${cur.getFullYear()}: ${money(byM[k]||0)}`}); cur.setMonth(cur.getMonth()+1); }
+    const mx = Math.max(...data.map(d => d.v)); data.forEach(d => { if(d.v && d.v === mx) d.cls = 'best'; });
+    barChart($('chartMain'), data, {values:true, scrollEnd:true});
+    $('chartLegend').textContent = 'Verde: el mejor mes del periodo.';
+  }
+
+  // día de la semana (promedio en días con venta)
+  const wk = Array.from({length:7}, () => ({sum:0, n:0}));
+  saleDays.forEach(k => { const w = parseDay(k).getDay(); wk[w].sum += byDay[k].v; wk[w].n++; });
+  const order = [1,2,3,4,5,6,0];
+  const avgs = order.map(w => ({w, v: wk[w].n ? wk[w].sum / wk[w].n : 0, n: wk[w].n}));
+  const withData = avgs.filter(x => x.n);
+  const bW = withData.length ? withData.reduce((m,x) => x.v > m.v ? x : m) : null;
+  const wW = withData.length > 1 ? withData.reduce((m,x) => x.v < m.v ? x : m) : null;
+  barChart($('chartWeek'), avgs.map(x => ({l:DOW[x.w], v:x.v, cls: bW && x.w===bW.w ? 'best' : (wW && x.w===wW.w ? 'worst' : ''),
+    title:`${DOW[x.w]}: promedio ${money(x.v)} (${x.n} días)`})), {values:true});
+
+  // efectivo vs yape
+  const cash = V.filter(v => v.pago !== 'Yape').reduce((s,v) => s + v.monto, 0), yape = tv - cash;
+  const pct = n => tv ? Math.round(n/tv*100) : 0;
+  $('payMix').innerHTML = tv ? `
+    <div class="hbar"><span>Efectivo</span><div class="track"><i style="width:${pct(cash)}%;background:var(--cash)"></i></div><span>${money(cash)} · ${pct(cash)}%</span></div>
+    <div class="hbar"><span>Yape / Plin</span><div class="track"><i style="width:${pct(yape)}%;background:var(--yape)"></i></div><span>${money(yape)} · ${pct(yape)}%</span></div>`
+    : '<div class="empty">Sin ventas en este periodo.</div>';
+
+  // productos más vendidos
+  const pc = {};
+  V.forEach(v => (v.items||[]).forEach(n => { pc[n] = (pc[n]||0) + 1; }));
+  const top = Object.entries(pc).sort((x,y) => y[1]-x[1]).slice(0,8);
+  $('topWrap').hidden = !top.length;
+  if(top.length){
+    const mx = top[0][1];
+    $('topProds').innerHTML = top.map(([n,c]) => `<div class="hbar"><span>${esc(n)}</span><div class="track"><i style="width:${c/mx*100}%;background:var(--acc)"></i></div><span>${c}</span></div>`).join('');
+  }
+
+  // lista de días
+  const allDays = [...new Set(V.map(v => v.fecha).concat(C.map(c => c.fecha)))].sort().reverse();
+  $('dayList').innerHTML = allDays.length ? allDays.map(k => {
+    const d = byDay[k] || {v:0, n:0, cash:0, yape:0};
+    const dc = C.filter(c => c.fecha === k);
+    const comp = dc.reduce((s,c) => s + c.monto, 0);
+    const sales = V.filter(v => v.fecha === k).sort((x,y) => x.ts - y.ts);
+    return `<details class="day"><summary>
+        <span class="d">${esc(longDay(k))}</span><span class="v">${money(d.v)}</span>
+        <span class="s">${d.n} ${d.n===1?'venta':'ventas'} · Efectivo ${money(d.cash)} · Yape ${money(d.yape)}${comp ? ` · Compras ${money(comp)}` : ''}</span>
+      </summary>
+      ${sales.map(v => saleRow(v).replace('<span></span>', H.neg==='todos' ? `<span class="dotn ${v.neg}" title="${NEG[v.neg]}"></span>` : '<span></span>')).join('')}
+      ${dc.map(c => buyRow(c, H.neg==='todos')).join('')}
+    </details>`;
+  }).join('') : '<div class="empty">No hay registros en este periodo.</div>';
+  bindDel($('dayList'));
+  renderDataStatus();
+}
+async function renderDataStatus(){
+  const total = S.ventas.length + S.compras.length;
+  const first = S.ventas.concat(S.compras).map(x => x.fecha).sort()[0];
+  const p = await askPersist();
+  $('stDot').className = p ? '' : 'warn';
+  $('stTxt').textContent = `${total} registros guardados${first ? ' desde ' + parseDay(first).toLocaleDateString('es-PE',{day:'numeric', month:'short', year:'numeric'}) : ''}. ` +
+    (p ? 'Almacenamiento protegido por el navegador.' : 'El navegador no garantiza la protección: guarda respaldos seguido.');
+  const days = S.lastBackup ? Math.floor((Date.now() - S.lastBackup) / 864e5) : null;
+  $('bkDot').className = (days !== null && days < 8) ? '' : 'warn';
+  $('bkTxt').textContent = days === null ? 'Aún no guardas ningún respaldo.' : (days === 0 ? 'Último respaldo: hoy.' : `Último respaldo: hace ${days} ${days===1?'día':'días'}.`);
+}
+
+/* Datos */
+$('dBackup').addEventListener('click', doBackup);
+$('bannerBackup').addEventListener('click', doBackup);
+$('dCsv').addEventListener('click', async () => {
+  const cell = x => { const s = String(x ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
+  const rows = [['fecha','hora','dia_semana','negocio','tipo','categoria','detalle','monto','forma_pago'].join(',')];
+  S.ventas.concat(S.compras.map(c => Object.assign({_c:true}, c))).sort((x,y) => x.fecha.localeCompare(y.fecha) || x.ts - y.ts).forEach(x => {
+    rows.push([x.fecha, x.hora || '', DOW[parseDay(x.fecha).getDay()], NEG[x.neg], x._c ? 'compra' : 'venta',
+      x._c ? x.cat : 'Venta', x._c ? x.desc : (x.items||[]).join(' + '), x.monto.toFixed(2), x.pago].map(cell).join(','));
+  });
+  await exportFile(`ventas_${isoDay()}.csv`, '\uFEFF' + rows.join('\n'), 'text/csv');
+});
+$('dImport').addEventListener('click', () => $('dFile').click());
+$('dFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const d = JSON.parse(r.result);
+      if(!valid(d)) throw 0;
+      // Se combinan los datos (no se pierde nada de lo que ya hay)
+      const merge = (cur, inc) => { const ids = new Set(cur.map(x => x.id)); return cur.concat(inc.filter(x => x && x.id && !ids.has(x.id))); };
+      const before = S.ventas.length + S.compras.length;
+      S.ventas = merge(S.ventas, d.ventas); S.compras = merge(S.compras, d.compras); S.productos = merge(S.productos, d.productos);
+      if(d.photos && typeof d.photos === 'object'){ Object.keys(d.photos).forEach(k => { if(!PH[k]) PH[k] = d.photos[k]; }); savePhotos(); }
+      save(); render();
+      showToast(`Respaldo restaurado: ${S.ventas.length + S.compras.length - before} registros nuevos.`);
+    }catch(err){ showToast('Ese archivo no es un respaldo válido.'); }
+    e.target.value = '';
+  };
+  r.readAsText(f);
+});
+$('dWipe').addEventListener('click', () => {
+  if(!confirm('¿Borrar TODAS las ventas, compras y productos?')) return;
+  if(prompt('Para confirmar escribe BORRAR') !== 'BORRAR') return;
+  const mode = S.mode; S = emptyState(); S.mode = mode; PH = {}; savePhotos(); save(); render(); showToast('Datos borrados.');
+});
+
+/* ================= Navegación ================= */
+let view = 'venta';
+const TITLES = {venta:'Venta', compras:'Compras', historial:'Historial', productos:'Productos'};
+function go(v){
+  view = v;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.dataset.view === v ? b.setAttribute('aria-current','page') : b.removeAttribute('aria-current'));
+  Object.keys(TITLES).forEach(k => $('v-'+k).hidden = k !== v);
+  $('title').textContent = TITLES[v];
+  $('modeWrap').hidden = v === 'historial';
+  render(); window.scrollTo(0,0);
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => go(b.dataset.view)));
+
+function renderBanner(){
+  const days = S.lastBackup ? (Date.now() - S.lastBackup) / 864e5 : Infinity;
+  const has = S.ventas.length >= 5;
+  $('backupBanner').hidden = !(has && days >= 7) || view === 'historial';
+  $('backupTxt').textContent = S.lastBackup ? `Hace ${Math.floor(days)} días que no guardas un respaldo.` : 'Aún no guardas un respaldo de tus ventas.';
+}
+function render(){
+  $('dateLbl').textContent = new Date().toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long'});
+  renderBanner();
+  if(view === 'venta') renderVenta();
+  if(view === 'compras') renderCompras();
+  if(view === 'historial') renderHistorial();
+  if(view === 'productos') renderProductos();
+}
+
+(async () => {
+  await load();
+  applyMode();
+  render();
+  // Si queda abierta pasada la medianoche, se actualiza el día
+  setInterval(() => { if(view === 'venta') renderVenta(); }, 60000);
+})();
+if('serviceWorker' in navigator){ window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+</script>
+</body>
+</html>
